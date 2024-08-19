@@ -13,6 +13,10 @@ class Player:
         action = {"type": action_type, "amount": amount, "street": street}
         self.actions.append(action)
 
+        if action_type == "posting SB" or "posting BB":
+            self.update_stack(-amount)
+            hand.pot.collect_bet(self, amount)
+            
         if action_type == "fold":
             self.isActive = False
         elif action_type == "check":

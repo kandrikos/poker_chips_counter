@@ -23,46 +23,40 @@ class Hand:
             player.isActive = True 
             player.actions = []
 
-        # Reset pot and current bet
+        # Reset pot
         self.pot = Pot()
-        self.current_bet = 0
-
-        # Assign positions (rotate the button)
-        self.button_position = (self.button_position + 1) % len(self.activePlayers)
-        for i, player in enumerate(self.activePlayers):
-            position = (self.button_position + i) % len(self.activePlayers)
-            if position == 0:
-                player.position = "Button"
-            elif position == 1:
-                player.position = "SB"
-            elif position == 2:
-                player.position = "BB"
-            else:
-                player.position = position + 1  # Adjust for 1-based indexing
+        self.current_bet = self.big_blind
 
         # Collect blinds
         for player in self.activePlayers:
             if player.position == "SB":
-                player.make_action("bet", self.big_blind // 2, "pre-flop", self)
+                player.make_action("posting SB", self.big_blind // 2, "pre-flop", self)
             elif player.position == "BB":
-                player.make_action("bet", self.big_blind, "pre-flop", self)
+                player.make_action("posting BB", self.big_blind, "pre-flop", self)
 
-        # You'll likely need to add logic here to:
-        # - Rotate the dealer button (change player positions)
-        # - Handle blind level increases in a tournament setting
-        # - Potentially handle antes if applicable
 
     def end_hand(self):
         # Determine winner(s)
         # Distribute pot
+        # Rotate the dealer button at the end of the method
         pass
     
     def is_valid_action(self, player, action_type, amount):
+        # Blinds checks
+        if action_type == "posting SB":
+            if player.position == "SB":
+                return True
+        
+        if action_type == "posting BB":
+            if player.position == "BB":
+                return True
+
         # Basic checks
         if action_type not in ["fold", "check", "call", "bet", "raise"]:
             return False
-        if amount < 0 or (amount > 0 and amount > player.stack):
+        if amount < 0 or amount > player.stack:
             return False
+        
         
         # Check for SB completing the blind (pre-flop only)
         if player.position == "SB" and self.currentStreet == "pre-flop":
