@@ -13,10 +13,6 @@ class Hand:
         self.button_position = 0  # Initialize button position to 0 (first player)
         # self.start_new_hand()
 
-    def next_street(self):
-        # Logic to progress to the next street
-        pass
-
     def start_new_hand(self):
         # Reset player states
         for player in self.activePlayers:
@@ -35,6 +31,7 @@ class Hand:
                 player.make_action("posting BB", self.big_blind, "pre-flop", self)
 
 
+
     def end_hand(self):
         # Determine winner(s)
         # Distribute pot
@@ -42,7 +39,7 @@ class Hand:
         pass
     
     def is_valid_action(self, player, action_type, amount):
-        # Blinds checks
+        # Blinds checks 
         if action_type == "posting SB":
             if player.position == "SB":
                 return True
