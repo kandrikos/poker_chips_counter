@@ -4,19 +4,20 @@ from player import Player
 from pot import Pot
 
 class Hand:
-    def __init__(self, players: List[Player], big_blind: int=20):
+    def __init__(self, active_players: List[Player], btn_player: Player, big_blind: int=20):
         self.currentStreet = 'pre-flop'
-        self.activePlayers = players
+        self.active_players = active_players
+        self.btn_player = btn_player
         self.big_blind = big_blind
         self.pot = Pot()
         self.current_bet = 0
         self.button_position = 0  # Initialize button position to 0 (first player)
         # self.start_new_hand()
 
-    def start_new_hand(self):
+    def play_preflop(self):
         # Reset player states
-        for player in self.activePlayers:
-            player.isActive = True 
+        for player in self.active_players:
+            player.hand_active = True 
             player.actions = []
 
         # Reset pot
@@ -24,11 +25,29 @@ class Hand:
         self.current_bet = self.big_blind
 
         # Collect blinds
-        for player in self.activePlayers:
-            if player.position == "SB":
-                player.make_action("posting SB", self.big_blind // 2, "pre-flop", self)
-            elif player.position == "BB":
-                player.make_action("posting BB", self.big_blind, "pre-flop", self)
+        for player in self.active_players:
+            if player.rel_position == "SB":
+                if player.stack <= self.big_blind // 2:
+                    player.make_action("posting SB", player.stack, "pre-flop", self)
+                else:
+                    player.make_action("posting SB", self.big_blind // 2, "pre-flop", self)
+            elif player.rel_position == "BB":
+                if player.stack <= self.big_blind:
+                    player.make_action("posting BB", player.stack, "pre-flop", self)
+                else:
+                    player.make_action("posting BB", self.big_blind, "pre-flop", self)
+    
+    # def play_preflop(self):
+    #     for player in self.activePlayers:
+    #         if 
+        
+    #     pass
+
+
+
+
+    def play_streets(self):
+        pass
 
 
 

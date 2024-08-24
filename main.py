@@ -1,6 +1,8 @@
 from player import Player
 from hand import Hand
 
+from random import randrange
+
 class Table:
     def __init__(self, num_seats):
         self.num_seats = num_seats
@@ -40,39 +42,94 @@ def play_simple_hand():
     initial_stack = 1000
     initial_bb = 20
 
-    players_names = ["A", "B", "C", "D", "E", "F"]
+    players = [
+        Player(name="A", rel_position=None, stack=initial_stack),
+        Player(name="B", rel_position=None, stack=initial_stack),
+        Player(name="C", rel_position=None, stack=initial_stack),
+        Player(name="D", rel_position=None, stack=initial_stack),
+        Player(name="E", rel_position=None, stack=initial_stack),
+        Player(name="F", rel_position=None, stack=initial_stack)
+        ]
 
-    # players = [
-    #     Player("A", None, initial_stack),
-    #     Player("B", None, initial_stack),
-    #     Player("C", None, initial_stack),
-    #     Player("D", None, initial_stack),
-    #     Player("E", None, initial_stack),
-    #     Player("F", None, initial_stack)
-    # ]
-    # assign positions to the table
-    table = Table(len(players_names))
+    # assign seats to players (or ask user for players/seats)
+    # seats = {
+    #     f"seat_{i}": players[i] if players[i].game_active else None
+    #     for i in range(6)
+    # }
 
-    for name in players_names:
-        seat = int(input(f"Enter the seat number for player {name} (1-6): "))
-        table.assign_seat(Player(name, None, initial_stack), seat)
+    seats = {
+        "seat_0": players[0],    
+        "seat_1": players[1],
+        "seat_2": players[2],
+        "seat_3": players[3],
+        "seat_4": players[4],    
+        "seat_5": players[5]
+    }
 
-    first_button_seat = int(input("Select the 1st dealer seat (1-6): "))
-
-    table.seating.get(first_button_seat).position = "Button"
-    try:
-        table.seating.get(first_button_seat + 1).position = "SB"
-    except AttributeError:
-        table.seating.get(1).position = "SB"
-        table.seating.get(2).position = "BB"
     
-    table.seating.get(first_button_seat + 2).position = "BB"
+    # randomly select first dealer-seat of the game and play the first hand
+    first_btn_seat = randrange(len(players))
+    first_btn_player = seats.get(f"seat_{first_btn_seat}")
+    first_btn_player.rel_position = 0 # assign relative position to 0 for dealer player
+    nums = [i for i in range(1, len(seats))]
 
-    table.rotate_button()
+    seats[f'seat_{(first_btn_seat + min(nums)) % len(seats)}'].rel_position = min(nums)
+    nums.pop(0)
+    seats[f'seat_{(first_btn_seat + min(nums)) % len(seats)}'].rel_position = min(nums)
+    nums.pop(0)
+    seats[f'seat_{(first_btn_seat + min(nums)) % len(seats)}'].rel_position = min(nums)
+    nums.pop(0)
+    seats[f'seat_{(first_btn_seat + min(nums)) % len(seats)}'].rel_position = min(nums)
+    nums.pop(0)
+    seats[f'seat_{(first_btn_seat + min(nums)) % len(seats)}'].rel_position = min(nums)
+    nums.pop(0)
 
-    players = list(table.seating.values())
-    hand = Hand(players, initial_bb)
-    hand.start_new_hand()
+
+
+    
+    for i in range(1, len(players)):
+        player = seats[f'seat_{(first_btn_seat + i) % len(seats)}']
+        if player != None:
+            player.rel_position = i # assign relative positions to players after the dealer
+        else:
+            pass # TODO: handle the case where a player in None (eliminated).
+                 # The way it is written now, if a player == None
+                 # the next position will not be assigned to any player. 
+                 # e.g. 
+                 # seat_2 player.rel_position = 0 --> dealer
+                 # AND seat_3 player = None:  
+                 # seat_4 player will be assigned with rel_position 2 instead of 1
+
+
+    first_hand = Hand(
+        active_players=players, 
+        btn_player=first_btn_player, 
+        big_blind=initial_bb)
+    
+    first_hand.play_preflop()
+    first_hand.play_streets()
+
+    active_players = [pl for pl in players if pl.game_active == True] # get active players
+
+    
+
+    # continue with the next hands and all active players
+    hand_num = 0
+    while len(active_players) > 1:
+        # update `seats` dict (remove non-active players)
+        for key in seats.keys():
+            if seats[key].game_active == False:
+                seats[key] = None
+
+        active_players_num = len([i for i in seats.keys() if seats[i] != None])
+        btn_seat = f"seat_{(first_btn_seat + hand_num + 1) % active_players_num}" # button rotation
+        btn_player = seats.get(btn_seat)
+        hand = Hand(active_players, btn_player)
+
+        hand.play_preflop()
+        hand.play_streets()
+
+        active_players = [pl for pl in players if pl.game_active == True] # get active players
 
 if __name__ == "__main__":
     play_simple_hand()

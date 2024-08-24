@@ -1,9 +1,12 @@
+
+
 class Player:
-    def __init__(self, name: str, position: int, stack: int):
+    def __init__(self, name: str, rel_position, stack: int):
         self.name = name
-        self.position = position
+        self.rel_position = rel_position
         self.stack = stack
-        self.isActive = True
+        self.hand_active = True
+        self.game_active = True
         self.actions = []
     
     def make_action(self, action_type, amount, street, hand):
@@ -18,7 +21,7 @@ class Player:
             hand.pot.collect_bet(self, amount)
             
         if action_type == "fold":
-            self.isActive = False
+            self.is_active = False
         elif action_type == "check":
             pass  # No change to stack or pot
         elif action_type == "call":
