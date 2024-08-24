@@ -21,7 +21,7 @@ class Player:
             hand.pot.collect_bet(self, amount)
             
         if action_type == "fold":
-            self.is_active = False
+            self.hand_active = False
         elif action_type == "check":
             pass  # No change to stack or pot
         elif action_type == "call":

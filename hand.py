@@ -25,17 +25,43 @@ class Hand:
         self.current_bet = self.big_blind
 
         # Collect blinds
-        for player in self.active_players:
-            if player.rel_position == "SB":
-                if player.stack <= self.big_blind // 2:
-                    player.make_action("posting SB", player.stack, "pre-flop", self)
-                else:
-                    player.make_action("posting SB", self.big_blind // 2, "pre-flop", self)
-            elif player.rel_position == "BB":
-                if player.stack <= self.big_blind:
-                    player.make_action("posting BB", player.stack, "pre-flop", self)
-                else:
-                    player.make_action("posting BB", self.big_blind, "pre-flop", self)
+        player_sb = next((player for player in self.active_players if player.rel_position == 1), None)
+        if player_sb.stack <= self.big_blind // 2:
+            player_sb.make_action("posting SB", player_sb.stack, "pre-flop", self)
+        else:
+            player_sb.make_action("posting SB", self.big_blind // 2, "pre-flop", self)
+        
+        player_bb = next((player for player in self.active_players if player.rel_position == 2), None)
+        if player_bb.stack <= self.big_blind:
+            player_bb.make_action("posting BB", player_bb.stack, "pre-flop", self)
+        else:
+            player_bb.make_action("posting BB", self.big_blind, "pre-flop", self)
+
+        
+        # Ask for action to the next player
+        # Possible action: [fold, call, raise]
+        next_player_position = 3  # Position of the next player after BB
+        next_player = next((player for player in self.active_players if player.rel_position == next_player_position), None)
+        if next_player:
+            # Handle action for the next player
+            action = input(f"Player {next_player.name}, choose action (fold, call, raise): ")
+            while action not in ['fold', 'call', 'raise']:
+                print("Invalid action. Please choose from fold, call, raise.")
+                action = input(f"Player {next_player.name}, choose action (fold, call, raise): ")
+            
+            # Perform action based on player's choice
+            if action == 'fold':
+                next_player.make_action("fold", 0, "pre-flop", self)
+            elif action == 'call':
+                call_amount = self.current_bet - next_player.current_bet
+                next_player.make_action("call", call_amount, "pre-flop", self)
+            elif action == 'raise':
+                raise_amount = int(input(f"Enter the raise amount for Player {next_player.name}: "))
+                next_player.make_action("raise", raise_amount, "pre-flop", self)
+
+
+
+
     
     # def play_preflop(self):
     #     for player in self.activePlayers:
@@ -60,11 +86,11 @@ class Hand:
     def is_valid_action(self, player, action_type, amount):
         # Blinds checks 
         if action_type == "posting SB":
-            if player.position == "SB":
+            if player.rel_position == 1:
                 return True
         
         if action_type == "posting BB":
-            if player.position == "BB":
+            if player.rel_position == 2:
                 return True
 
         # Basic checks
@@ -75,7 +101,7 @@ class Hand:
         
         
         # Check for SB completing the blind (pre-flop only)
-        if player.position == "SB" and self.currentStreet == "pre-flop":
+        if player.rel_position == 1 and self.currentStreet == "pre-flop":
             amount_to_call = self.big_blind - self.pot.current_round_contributions.get(player, 0)
             if action_type == "check" and amount_to_call > 0:
                 return False  # Can't check if SB needs to complete
@@ -83,7 +109,7 @@ class Hand:
                 return False  # Call amount must match the amount needed
             
         # Check for BB completing the blind (pre-flop only)
-        if player.position == "BB" and self.currentStreet == "pre-flop":
+        if player.rel_position == 2 and self.currentStreet == "pre-flop":
             # BB has already posted the big blind, so they can check if no one has raised
             if action_type == "check" and self.current_bet == self.big_blind:
                 return True
