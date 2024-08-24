@@ -71,12 +71,10 @@ def play_simple_hand():
     #     player = Player(player_name,  rel_position=None, stack=initial_stack)
     #     players.append(player)
 
-    num_players = 5
-    players = [Player("A", rel_position=None, stack=initial_stack),
-               Player("B", rel_position=None, stack=initial_stack),
-               Player("C", rel_position=None, stack=initial_stack),
-               Player("D", rel_position=None, stack=initial_stack),
-               Player("E", rel_position=None, stack=initial_stack)]
+    num_players = 9
+    players = []
+    for i  in range(num_players):
+        players.append(Player(f"Player_{i}", rel_position=None, stack=initial_stack))
 
 
     seats = Seats(players)
@@ -87,10 +85,10 @@ def play_simple_hand():
     # first_btn_player.rel_position = 0 # assign relative position to 0 for dealer player
     # nums = [i for i in range(1, len(seats.seats))]
 
-    first_btn_seat = 1
-    first_btn_player = seats.get_player_at_seat("seat_1")
+    first_btn_seat = 4
+    first_btn_player = seats.get_player_at_seat(f"seat_{first_btn_seat}")
     first_btn_player.rel_position = 0
-    nums = [1, 2, 3, 4]
+    nums = [i for i in range(1, num_players)]
 
 
     print(f"Initial BB: {initial_bb}\n")
@@ -132,7 +130,7 @@ def play_simple_hand():
     ####################################################################
     ####################################################################
 
-    
+
     # continue with the next hands and all active players
     hand_num = 0
     while len(active_players) > 1:
