@@ -1,9 +1,6 @@
 from player import Player
 from hand import Hand
 
-from random import randrange
-
-
 class Seats:
     def __init__(self, players):
         self.seats = {f"seat_{i}": player for i, player in enumerate(players)}
@@ -30,13 +27,6 @@ def play_simple_hand():
 
     initial_stack = 1000
     initial_bb = 20
- 
-    # num_players = int(input("Enter the number of players: "))
-    # players = []
-    # for i in range(num_players):
-    #     player_name = input(f"Enter the name of the player to sit in seat_{i}: ")
-    #     player = Player(player_name,  rel_position=None, stack=initial_stack)
-    #     players.append(player)
 
     num_players = 9
     players = []
@@ -45,12 +35,6 @@ def play_simple_hand():
 
 
     seats = Seats(players)
-    
-    # # randomly select first dealer-seat of the game and play the first hand
-    # first_btn_seat = int(input(f"Enter the number of seat to have the first dealer button (0 - {num_players}): ")) # randrange(len(players))
-    # first_btn_player = seats.get_player_at_seat(f"seat_{first_btn_seat}") # seats.get(f"seat_{first_btn_seat}")
-    # first_btn_player.rel_position = 0 # assign relative position to 0 for dealer player
-    # nums = [i for i in range(1, len(seats.seats))]
 
     first_btn_seat = 4
     first_btn_player = seats.get_player_at_seat(f"seat_{first_btn_seat}")
@@ -77,11 +61,9 @@ def play_simple_hand():
         btn_player=first_btn_player, 
         big_blind=initial_bb)
     
-    first_hand.play_preflop()
-    first_hand.play_streets()
-
-    
-    active_players = [pl for pl in players if pl.game_active == True] # get active players
+    for street in ['pre-flop', 'flop', 'turn', 'river']:
+        first_hand.start_betting_round(street)
+    active_players = [pl for pl in players if pl.game_active == True] # update active_players after the first hand
     
     
     ####################################################################

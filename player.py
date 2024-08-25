@@ -10,13 +10,13 @@ class Player:
         self.actions = []
     
     def make_action(self, action_type, amount, street, hand):
-        if not hand.is_valid_action(self, action_type, amount):
-            raise ValueError("Invalid action")
+        # if not hand.is_valid_action(self, action_type, amount):
+        #     raise ValueError("Invalid action")
 
         action = {"type": action_type, "amount": amount, "street": street}
         self.actions.append(action)
 
-        if action_type == "posting SB" or "posting BB":
+        if action_type in ["posting SB", "posting BB"]:
             self.update_stack(-amount)
             hand.pot.collect_bet(self, amount)
             
