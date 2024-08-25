@@ -97,23 +97,13 @@ def play_simple_hand():
     print(f"First btn  player: {first_btn_player.name}\n")
     print(f"Seats: \n {seats.seats.keys()}")
     print(f"Players: \n {[v.name for v in seats.seats.values()]}")
- 
+
+    # assign relative positions to players after the dealer
     for i in range(1, len(players)):
-        # player = seats[f'seat_{(first_btn_seat + i) % len(seats)}']
         player = seats.get_player_at_seat(f'seat_{(first_btn_seat + i) % len(seats.seats)}')
         if player is not None:
             player.rel_position = min(nums)
-            nums.pop(0) # assign relative positions to players after the dealer
-        else:
             nums.pop(0)
-             # TODO: handle the case where a player in None (eliminated).
-                 # The way it is written now, if a player == None
-                 # the next position will not be assigned to any player. 
-                 # e.g. 
-                 # seat_2 player.rel_position = 0 --> dealer
-                 # AND seat_3 player = None:  
-                 # seat_4 player will be assigned with rel_position 2 instead of 1
-
 
     first_hand = Hand(
         active_players=players, 
