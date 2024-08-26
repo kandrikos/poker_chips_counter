@@ -1,5 +1,3 @@
-
-
 class Player:
     def __init__(self, name: str, rel_position, stack: int):
         self.name = name
@@ -9,6 +7,31 @@ class Player:
         self.game_active = True
         self.actions = []
     
+    def post_blind(self, hand):
+        self.update_stack(-hand.current_bet)
+        hand.pot.collect_bet(self, hand.current_bet)
+    
+    def action_call(self, hand):
+        call_amount = hand.current_bet - hand.pot.current_round_contributions.get(self, 0)
+        self.update_stack(-call_amount)
+        hand.pot.collect_bet(self, call_amount)
+
+    def action_raise(self, hand):
+        raise_amount = int(input("Enter raise amount: "))
+        self.update_stack(-raise_amount)
+        hand.pot.collect_bet(self, raise_amount)
+        hand.current_bet = raise_amount  # Update current_bet
+
+    def action_check(self):
+        pass
+
+    def action_fold(self):
+        self.hand_active = False
+
+    def update_stack(self, amount):
+        # Ensure stack doesn't go negative
+        self.stack = max(0, self.stack + amount)
+
     def make_action(self, action_type, amount, street, hand):
         # if not hand.is_valid_action(self, action_type, amount):
         #     raise ValueError("Invalid action")
@@ -34,6 +57,4 @@ class Player:
             hand.current_bet = amount  # Update current_bet
 
 
-    def update_stack(self, amount):
-        # Ensure stack doesn't go negative
-        self.stack = max(0, self.stack + amount)
+    

@@ -9,6 +9,7 @@ class Hand:
         self.active_players = active_players
         self.btn_player = btn_player
         self.big_blind = big_blind
+        self.small_blind = big_blind // 2
         self.pot = Pot()
         self.current_bet = 0
         self.button_position = 0  # Initialize button position to 0 (first player)
@@ -16,7 +17,6 @@ class Hand:
 
 
     def start_betting_round(self, street):
-        
         for player in self.active_players:
             player.hand_active = True
             player.actions = []
@@ -24,82 +24,114 @@ class Hand:
         self.pot = Pot()
         if street == 'pre-flop':
             bet_exists = True   # big blind exists
-            # first_bet = self.big_blind
+            
 
             # Post blinds
+            # small blind
             player_sb = next((player for player in self.active_players if player.rel_position == 1), None)
-            if player_sb.stack <= self.big_blind // 2:
-                player_sb.make_action("posting SB", player_sb.stack, "pre-flop", self)
-            else:
-                player_sb.make_action("posting SB", self.big_blind // 2, "pre-flop", self)
-                    
-            player_bb = next((player for player in self.active_players if player.rel_position == 2), None)
-            if player_bb.stack <= self.big_blind:
-                player_bb.make_action("posting BB", player_bb.stack, "pre-flop", self)
-            else:
-                player_bb.make_action("posting BB", self.big_blind, "pre-flop", self)
+            self.current_bet = self.small_blind
+            player_sb.post_blind(self)
 
+            # big blind                                
+            player_bb = next((player for player in self.active_players if player.rel_position == 2), None)
+            self.current_bet = self.big_blind
+            player_bb.post_blind(self)
+
+            
+                       
             # Continue the action with the next players
-            # next_player_position = 3    # Position on the left of BB
-            # while bet_exists:
-            #     if next_player_position != 2:
-            #         availiable_actions = ['fold', 'call', 'raise']
-            #     next_player = next((player for player in self.active_players if player.rel_position == next_player_position), None)
-            #     action = input(f"Player {next_player.name}, choose action {availiable_actions}: ")
-            #     next_player.make_action(action)
+            current_player_position = 3    # Position on the left of BB
+            while bet_exists:
+                next_player = next((player for player in self.active_players if player.rel_position == current_player_position), None)
+
+                # skip the player(s) that folded
+                if not next_player.hand_active:
+                    current_player_position = (current_player_position + 1) % len(self.active_players)
+                    continue  # Skip to the next player in the loop
+
+                player_contribution = self.pot.current_round_contributions.get(next_player, 0)
+                if player_contribution < self.current_bet:
+                    available_actions = ['fold', 'call', 'raise']
+                else:
+                    available_actions = ['fold', 'check', 'raise']
+                
+                print("=" * 40)
+                print(f"Pot: {self.pot.total}")
+                print(f"Amount to call: {self.current_bet - self.pot.current_round_contributions.get(next_player, 0)}")
+                # print("=" * 40)
+
+                print("*" * 50)
+                action = input(f"Player {next_player.name}, choose action {available_actions}: ")
+                print("*" * 50)
+                if action == 'fold':
+                    next_player.action_fold()
+                elif action == 'call':
+                    next_player.action_call(self)
+                elif action == 'raise':
+                    next_player.action_raise(self)
+                elif action == 'check':
+                    next_player.action_check()
+                else:
+                    print("Invalid action. Try again.")
+                    continue  # Retry the action for the current player
+
+                player_contribution = self.pot.current_round_contributions.get(next_player, 0)
+
+                # Update player's position for the next iteration
+                current_player_position = (current_player_position + 1) % len(self.active_players)
 
             # Initialize the highest bet
             self.current_bet = max(self.pot.current_round_contributions.values(), default=0)
 
-            # Start action with the player left of the BB
-            next_player_position = 3  # Position after the BB
+            # # Start action with the player left of the BB
+            # current_player_position = 3  # Position after the BB
             
-            while True:
-                all_matched = True  # Flag to check if all players have matched the highest bet
+            # while True:
+            #     all_matched = True  # Flag to check if all players have matched the highest bet
 
-                # Loop through the active players
-                for i in range(len(self.active_players)):
-                    next_player = next((player for player in self.active_players if player.rel_position == next_player_position), None)
-                    if not next_player or not next_player.hand_active:
-                        next_player_position = (next_player_position + 1) % len(self.active_players)
-                        continue
+            #     # Loop through the active players
+            #     for i in range(len(self.active_players)):
+            #         next_player = next((player for player in self.active_players if player.rel_position == current_player_position), None)
+            #         if not next_player or not next_player.hand_active:
+            #             current_player_position = (current_player_position + 1) % len(self.active_players)
+            #             continue
 
-                    player_contribution = self.pot.current_round_contributions.get(next_player, 0)
-                    available_actions = ['fold', 'call', 'raise']
+            #         player_contribution = self.pot.current_round_contributions.get(next_player, 0)
+            #         available_actions = ['fold', 'call', 'raise']
 
-                    if player_contribution < self.current_bet:
-                        available_actions = ['fold', 'call', 'raise']
-                    else:
-                        available_actions = ['fold', 'check', 'raise']
+            #         if player_contribution < self.current_bet:
+            #             available_actions = ['fold', 'call', 'raise']
+            #         else:
+            #             available_actions = ['fold', 'check', 'raise']
 
-                    action = input(f"Player {next_player.name}, choose action {available_actions}: ").strip().lower()
+            #         action = input(f"Player {next_player.name}, choose action {available_actions}: ").strip().lower()
 
-                    if action == 'fold':
-                        next_player.fold()
-                    elif action == 'call':
-                        call_amount = self.current_bet - player_contribution
-                        next_player.make_action("call", call_amount, street, self)
-                    elif action == 'raise':
-                        raise_amount = int(input("Enter raise amount: "))
-                        next_player.make_action("raise", raise_amount, street, self)
-                        self.current_bet = max(self.current_bet, self.pot.current_round_contributions[next_player])
-                    elif action == 'check':
-                        next_player.make_action("check", 0, street, self)
-                    else:
-                        print("Invalid action. Try again.")
-                        continue  # Retry the action for the current player
+            #         if action == 'fold':
+            #             next_player.fold()
+            #         elif action == 'call':
+            #             call_amount = self.current_bet - player_contribution
+            #             next_player.make_action("call", call_amount, street, self)
+            #         elif action == 'raise':
+            #             raise_amount = int(input("Enter raise amount: "))
+            #             next_player.make_action("raise", raise_amount, street, self)
+            #             self.current_bet = max(self.current_bet, self.pot.current_round_contributions[next_player])
+            #         elif action == 'check':
+            #             next_player.make_action("check", 0, street, self)
+            #         else:
+            #             print("Invalid action. Try again.")
+            #             continue  # Retry the action for the current player
 
-                    # Update player contribution after the action
-                    player_contribution = self.pot.current_round_contributions.get(next_player, 0)
-                    if player_contribution < self.current_bet and next_player.hand_active:
-                        all_matched = False
+            #         # Update player contribution after the action
+            #         player_contribution = self.pot.current_round_contributions.get(next_player, 0)
+            #         if player_contribution < self.current_bet and next_player.hand_active:
+            #             all_matched = False
 
-                    next_player_position = (next_player_position + 1) % len(self.active_players)
-                    print(f"Total pot: {self.pot.total}")
+            #         current_player_position = (current_player_position + 1) % len(self.active_players)
+            #         print(f"Total pot: {self.pot.total}")
 
-                # Exit condition: all active players have matched the highest bet or folded
-                if all_matched:
-                    break
+            #     # Exit condition: all active players have matched the highest bet or folded
+            #     if all_matched:
+            #         break
 
         
 

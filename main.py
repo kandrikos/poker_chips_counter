@@ -1,22 +1,6 @@
 from player import Player
 from hand import Hand
-
-class Seats:
-    def __init__(self, players):
-        self.seats = {f"seat_{i}": player for i, player in enumerate(players)}
-
-    def get_player_at_seat(self, seat):
-        return self.seats.get(seat)
-
-    def assign_player_to_seat(self, seat, player):
-        self.seats[seat] = player
-
-    def remove_player_from_seat(self, seat):
-        self.seats[seat] = None
-
-    def get_active_players(self):
-        return [player for player in self.seats.values() if player is not None]
-    
+from table import Table
 
 
 def play_simple_hand():
@@ -28,30 +12,31 @@ def play_simple_hand():
     initial_stack = 1000
     initial_bb = 20
 
-    num_players = 9
+    num_players = 8
     players = []
     for i  in range(num_players):
         players.append(Player(f"Player_{i}", rel_position=None, stack=initial_stack))
 
 
-    seats = Seats(players)
+    table = Table(players)
 
-    first_btn_seat = 4
-    first_btn_player = seats.get_player_at_seat(f"seat_{first_btn_seat}")
+    first_btn_seat = 1
+    first_btn_player = table.get_player_at_seat(f"seat_{first_btn_seat}")
     first_btn_player.rel_position = 0
     nums = [i for i in range(1, num_players)]
 
-
-    print(f"Initial BB: {initial_bb}\n")
-    print(f"Starting Stack: {initial_stack}\n")
-    print(f"Players: \n{[player.name for player in players]}\n")
-    print(f"First btn  player: {first_btn_player.name}\n")
-    print(f"Seats: \n {seats.seats.keys()}")
-    print(f"Players: \n {[v.name for v in seats.seats.values()]}")
+    print("=" * 40)
+    print(f"Starting Stack: {initial_stack}")
+    print(f"Initial BB: {initial_bb}")
+    print("=" * 40)
+    for s, p in table.seats.items():
+        print(f"{s} --> {p.name}")
+    print("=" * 40)
+    print(f"First button  player: {first_btn_player.name}")
 
     # assign relative positions to players after the dealer
     for i in range(1, len(players)):
-        player = seats.get_player_at_seat(f'seat_{(first_btn_seat + i) % len(seats.seats)}')
+        player = table.get_player_at_seat(f'seat_{(first_btn_seat + i) % len(table.seats)}')
         if player is not None:
             player.rel_position = min(nums)
             nums.pop(0)
@@ -70,23 +55,23 @@ def play_simple_hand():
     ####################################################################
 
 
-    # continue with the next hands and all active players
-    hand_num = 0
-    while len(active_players) > 1:
-        # update `seats` dict (remove non-active players)
-        for key in list(seats.seats.keys()):
-            if seats.get_player_at_seat(key) is not None and not seats.get_player_at_seat(key).game_active:
-                seats.remove_player_from_seat(key)
+    # # continue with the next hands and all active players
+    # hand_num = 0
+    # while len(active_players) > 1:
+    #     # update `seats` dict (remove non-active players)
+    #     for key in list(table.seats.keys()):
+    #         if table.get_player_at_seat(key) is not None and not table.get_player_at_seat(key).game_active:
+    #             table.remove_player_from_seat(key)
 
-        active_players_num = len([i for i in seats.seats.values() if i is not None])
-        btn_seat = f"seat_{(first_btn_seat + hand_num + 1) % active_players_num}"  # button rotation
-        btn_player = seats.get_player_at_seat(btn_seat)
-        hand = Hand(active_players, btn_player)
+    #     active_players_num = len([i for i in table.seats.values() if i is not None])
+    #     btn_seat = f"seat_{(first_btn_seat + hand_num + 1) % active_players_num}"  # button rotation
+    #     btn_player = table.get_player_at_seat(btn_seat)
+    #     hand = Hand(active_players, btn_player)
 
-        hand.play_preflop()
-        hand.play_streets()
+    #     hand.play_preflop()
+    #     hand.play_streets()
 
-        active_players = seats.get_active_players()  # get active players
+    #     active_players = table.get_active_players()  # get active players
 
 if __name__ == "__main__":
     play_simple_hand()
