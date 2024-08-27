@@ -12,7 +12,7 @@ def play_simple_hand():
     initial_stack = 1000
     initial_bb = 20
 
-    num_players = 8
+    num_players = 5
     players = []
     for i  in range(num_players):
         players.append(Player(f"Player_{i}", rel_position=None, stack=initial_stack))
@@ -20,7 +20,7 @@ def play_simple_hand():
 
     table = Table(players)
 
-    first_btn_seat = 1
+    first_btn_seat = 0
     first_btn_player = table.get_player_at_seat(f"seat_{first_btn_seat}")
     first_btn_player.rel_position = 0
     nums = [i for i in range(1, num_players)]
