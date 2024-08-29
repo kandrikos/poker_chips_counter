@@ -3,14 +3,13 @@ from hand import Hand
 from table import Table
 
 
-def play_simple_hand():
-    """Plays a simplified hand of poker."""
+def initiate_game():
 
     ####################################################################
     ########################## RUNS ONLY ONCE ##########################
 
-    initial_stack = 1000
-    initial_bb = 20
+    initial_stack = 10000
+    initial_bb = 100
 
     num_players = 5
     players = []
@@ -42,14 +41,20 @@ def play_simple_hand():
             nums.pop(0)
 
     first_hand = Hand(
-        active_players=players, 
+        players=players, 
         btn_player=first_btn_player, 
         big_blind=initial_bb)
     
-    for street in ['pre-flop', 'flop', 'turn', 'river']:
-        first_hand.start_betting_round(street)
-    active_players = [pl for pl in players if pl.game_active == True] # update active_players after the first hand
-    
+    first_hand.play_hand()
+
+    while len([p for p in players if p.game_active] > 1):
+        hand = Hand(
+            active_players=players, 
+            btn_player=first_btn_player, 
+            big_blind=initial_bb)
+        
+        hand.play_hand()
+
     
     ####################################################################
     ####################################################################
@@ -74,4 +79,4 @@ def play_simple_hand():
     #     active_players = table.get_active_players()  # get active players
 
 if __name__ == "__main__":
-    play_simple_hand()
+    initiate_game()

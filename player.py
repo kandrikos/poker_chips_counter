@@ -6,6 +6,9 @@ class Player:
         self.hand_active = True
         self.game_active = True
         self.actions = []
+
+    # def get_game_active_players(self):
+    #     active_players = [p for p in ]
     
     def post_blind(self, hand):
         self.update_stack(-hand.current_bet)
