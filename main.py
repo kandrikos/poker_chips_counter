@@ -3,7 +3,7 @@ from hand import Hand
 from table import Table
 
 
-def initiate_game():
+def start_game():
 
     ####################################################################
     ########################## RUNS ONLY ONCE ##########################
@@ -47,6 +47,9 @@ def initiate_game():
     
     first_hand.play_hand()
 
+    ####################################################################
+    ####################################################################
+
     while len([p for p in players if p.game_active] > 1):
         hand = Hand(
             active_players=players, 
@@ -56,8 +59,7 @@ def initiate_game():
         hand.play_hand()
 
     
-    ####################################################################
-    ####################################################################
+
 
 
     # # continue with the next hands and all active players
@@ -79,4 +81,4 @@ def initiate_game():
     #     active_players = table.get_active_players()  # get active players
 
 if __name__ == "__main__":
-    initiate_game()
+    start_game()
