@@ -45,18 +45,21 @@ def start_game():
         btn_player=first_btn_player, 
         big_blind=initial_bb)
     
-    first_hand.play_hand()
+    first_hand.play_hand(test_actions=["no_raise"])
 
     ####################################################################
     ####################################################################
 
-    while len([p for p in players if p.game_active] > 1):
+    active_players = [p for p in players if p.game_active] 
+    while len(active_players) > 1:
         hand = Hand(
-            active_players=players, 
+            players=active_players, 
             btn_player=first_btn_player, 
             big_blind=initial_bb)
         
         hand.play_hand()
+        active_players = [p for p in players if p.game_active]
+
 
     
 

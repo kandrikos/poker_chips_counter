@@ -60,4 +60,8 @@ class Player:
             hand.current_bet = amount  # Update current_bet
 
 
+    def __str__(self):
+        return self.name
     
+    def __repr__(self):
+        return self.__str__()

@@ -3,6 +3,9 @@ from typing import List
 from player import Player
 from pot import Pot
 
+from tests import test_cases
+
+
 class Hand:
     def __init__(self, players: List[Player], btn_player: Player, big_blind: int=20):
         # self.current_street = 'PRE-FLOP'
@@ -42,17 +45,26 @@ class Hand:
         else:
             self.current_player_position = 1
 
-    def _action_round(self):
+    def special_cases(self):
+        # Case 1: Pre-flop round, no raise exists and the last player to act (BB) has the option `check`
+
+        # Case 2: 
+        pass
+
+
+    def _action_round(self, street_actions=None):
         
-        i = 0
-        while not self._bets_called() or not self.posting_blinds:
-            i += 1
-            raise_exist = False
-            # TODO:
-            #
-            # In preflop round, if all players call (or fold) the BB has the options: ['check', 'raise']
-            #
-            #
+        actions_taken = 0
+        total_active_players = len([p for p in self.active_players if p.hand_active])
+
+        while actions_taken < total_active_players or not self._bets_called():
+
+            # raise_exist = False
+            # # TODO:
+            # #
+            # # In preflop round, if all players call (or fold) the BB has the options: ['check', 'raise']
+            # #
+            # #
             current_player = next((player for player in self.active_players if player.rel_position == self.current_player_position), None)
 
             # skip the player(s) that folded
@@ -71,7 +83,12 @@ class Hand:
             print(f"Amount to call: {self.current_bet - self.pot.current_round_contributions.get(current_player, 0)}")
 
             print("*" * 50)
-            action = input(f"Player {current_player.name}, choose action {available_actions}: ")
+            # Fetch the action from test case if available
+            action = (street_actions.get(current_player.name, []).pop(0) 
+                  if street_actions and current_player.name in street_actions 
+                  else input(f"Player {current_player.name}, choose action {available_actions}: "))
+            
+            
             print("*" * 50)
             if action == 'fold':
                 current_player.action_fold()
@@ -79,28 +96,19 @@ class Hand:
                 current_player.action_call(self)
             elif action == 'raise':
                 current_player.action_raise(self)
-                raise_exist = True
+                actions_taken = 0 # Reset actions count if there's a raise
             elif action == 'check':
                 current_player.action_check()
             else:
                 print("Invalid action. Try again.")
                 continue  # Retry the action for the current player
 
-            player_contribution = self.pot.current_round_contributions.get(current_player, 0)
-
-            # Update player's position for the next iteration
+            # Count action and move to next player
+            actions_taken += 1
             self.current_player_position = (self.current_player_position + 1) % len(self.active_players)
 
-            # Initialize the highest bet
-            self.current_bet = max(self.pot.current_round_contributions.values(), default=0)
-
-            # Check if the action round should end after each action
-            if self._bets_called() and current_player == self.player_bb and action == 'check' and not raise_exist:
-                break  # Exit the loop if the BB checked and bets are called
-
-            if self._bets_called() and raise_exist and self.current_street != "PRE-FLOP":
-                break
-
+            if actions_taken >= total_active_players and self._bets_called():
+                break  # End round after all active players act and bets are matched
         print("Proceeding to the next betting round")
 
     # def _action_round(self):
@@ -171,7 +179,7 @@ class Hand:
 
 
 
-    def start_hand(self):
+    def start_hand(self, test_actions=None):
         streets = ["PRE-FLOP", "FLOP", "TURN", "RIVER"]
         for street in streets:    
             # for player in self.active_players: # TODO: WRONG! Do not set players `hand_active` in each street  
@@ -180,7 +188,7 @@ class Hand:
             self.current_street = street
             print(f"%%%%%%%%%%%%%%%%%%%%% {self.current_street} %%%%%%%%%%%%%%%%%%%%%")
             self._initiate_round(self.current_street)
-            self._action_round()
+            self._action_round(test_actions.get(street) if test_actions else None)
     
     def end_hand(self):
         # Determine winner(s)
@@ -194,7 +202,7 @@ class Hand:
         for player in self.active_players:
             player.rel_position -= 1
             
-    def play_hand(self):
+    def play_hand(self, test_actions=None):
         self.start_hand()
         self.end_hand()
     
